@@ -1,0 +1,56 @@
+/* General styling for the body */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+/* Container holds the columns */
+.container {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 1200px;
+}
+
+/* Styling for each column */
+.column {
+    width: 18%;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+}
+
+/* Style for the color number text at the bottom */
+.color-number {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Styling for the button */
+button {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+/* Hover effect for the button */
+button:hover {
+    background-color: #45a049;
+}
