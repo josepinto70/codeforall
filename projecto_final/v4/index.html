@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        #map { height: 500px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <h1>GPS Tracker</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([51.505, -0.09], 13); // Default view
+
+        // Add a tile layer to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Function to add a GPS marker to the map
+        function addMarker(lat, lon) {
+            const marker = L.marker([lat, lon]).addTo(map);
+            marker.bindPopup(`<b>Latitude:</b> ${lat}<br><b>Longitude:</b> ${lon}`).openPopup();
+        }
+
+        // Fetch all stored GPS points and display them on the map
+        fetch('http://localhost:3000/get-gps')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(point => {
+                    addMarker(point.latitude, point.longitude);
+                });
+            })
+            .catch(error => console.error('Error fetching GPS data:', error));
+
+        // Function to capture GPS data and send to backend
+        if ("geolocation" in navigator) {
+            setInterval(function() {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Add marker to map
+                    addMarker(latitude, longitude);
+
+                    // Send the GPS data to the backend
+                    fetch('http://localhost:3000/store-gps', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ latitude, longitude })
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log('GPS data stored:', data))
+                    .catch(error => console.error('Error storing GPS data:', error));
+                });
+            }, 5000); // Capture GPS data every 5 seconds
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+        }
+    </script>
+
+</body>
+</html>

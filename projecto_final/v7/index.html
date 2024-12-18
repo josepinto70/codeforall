@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store GPS Pinpoints</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Store GPS Pinpoints</h2>
+  <div id="map"></div>
+  <button id="saveLocationsBtn">Save All Pinpoints</button>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>
+  <script>
+    // Initialize map with a default view
+    const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add the Leaflet Simple Locate control to the map
+    const locateControl = L.control.locate({
+      follow: true,
+      setView: true,
+      keepCurrentZoomLevel: true,
+    }).addTo(map);
+
+    // Array to store the coordinates of all pinpoints
+    let pinpoints = [];
+
+    // Event listener to add markers (pinpoints) on the map
+    map.on('click', function(event) {
+      const lat = event.latlng.lat;
+      const lon = event.latlng.lng;
+
+      // Add a marker at the clicked location
+      const marker = L.marker([lat, lon]).addTo(map);
+
+      // Store the coordinates of the new marker in the pinpoints array
+      pinpoints.push({ lat, lon });
+
+      // Optionally, you can also show a popup when a marker is added
+      marker.bindPopup(`<b>Latitude:</b> ${lat}<br><b>Longitude:</b> ${lon}`).openPopup();
+    });
+
+    // Event listener to save all the pinpoints
+    document.getElementById("saveLocationsBtn").addEventListener("click", function() {
+      if (pinpoints.length > 0) {
+        // Send the coordinates to the Node.js backend
+        fetch('http://localhost:3000/save-pinpoints', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pinpoints })
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Pinpoints saved successfully!');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to save pinpoints');
+        });
+      } else {
+        alert('No pinpoints to save');
+      }
+    });
+  </script>
+</body>
+</html>

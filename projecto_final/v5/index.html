@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store GPS Location</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Store GPS Location</h2>
+  <div id="map"></div>
+  <button id="storeLocationBtn">Store Current Location</button>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize map with a default view
+    const map = L.map('map').setView([51.505, -0.09], 13);
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Initialize marker at the default position
+    const marker = L.marker([51.505, -0.09]).addTo(map);
+
+    // Function to get the current location
+    function getCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          map.setView([lat, lon], 13);  // Center the map on the user's location
+          marker.setLatLng([lat, lon]); // Update the marker's position
+        }, function(error) {
+          alert("Error getting location: " + error.message);
+        });
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    }
+
+    // Call the function to get the user's current location
+    getCurrentLocation();
+
+    // Event listener for storing the location
+    document.getElementById("storeLocationBtn").addEventListener("click", function() {
+      const lat = marker.getLatLng().lat;
+      const lon = marker.getLatLng().lng;
+
+      // Send the location to the Node.js server (via fetch)
+      fetch('http://localhost:3000/save-location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ lat, lon })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Location saved successfully!');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to save location');
+      });
+    });
+  </script>
+</body>
+</html>
